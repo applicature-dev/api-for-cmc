@@ -19,7 +19,7 @@ export class ReportService {
 
     async findByCoinId(coinId : number) : Promise<Report> {
         return await this.reportModel
-            .findOne({'coinId': coinId})
+            .findOne({'coinId': coinId}, {'_id': 0})
             .exec();
     }
 

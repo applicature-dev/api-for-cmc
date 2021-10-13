@@ -22,10 +22,10 @@ import { ConfigModule } from '@nestjs/config';
   imports: [
     ConfigModule.forRoot(),
     MongooseModule.forRoot(
-      'mongodb://localhost/users',
+      'mongodb://localhost/cmc-audit-report',
       { 
         useNewUrlParser: true,
-        // useUnifiedTopology: true,
+        useUnifiedTopology: true,
       },
     ),
     ThrottlerModule.forRoot({
