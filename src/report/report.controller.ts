@@ -1,19 +1,17 @@
 import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { ReportInterface } from 'src/interfaces/report.interface';
-import { Report } from 'src/schemas/Report.schema';
 import { ReportService } from './report.service';
+import { ReportDTO } from "../dto/report.dto";
+import { Report } from 'src/schemas/report.schema';
+// import { Role } from '../roles/role.guard';
+// import { Role } from 'src/utils/enums';
 
 @Controller('api/report')
 export class ReportController {
 
     constructor(
-        private reportService: ReportService
+        private readonly reportService: ReportService
     ) {}
-
-    @Post()
-    create(@Body() report: ReportInterface) {
-        this.reportService.create(report);
-    }
 
     @Get()
     async findAll() : Promise<Report[]> {
@@ -21,7 +19,24 @@ export class ReportController {
     }
 
     @Get(":coinId")
-    async findByCoinId(@Param() param) : Promise<Report> {
-        return await this.reportService.findByCoinId(param.coinId);
+    async findByCoinId(@Param('coinId') coinId: number) : Promise<Report> {
+        return await this.reportService.findByCoinId(coinId);
     }
+
+    // @Get(":coinName")
+    // async findByCoinName(@Param('coinName') coinName: string) : Promise<Report> {
+    //     return await this.reportService.findByCoinName(coinName);
+    // }
+
+    @Post()
+    // @Roles(Role.ADMIN)
+    async create(@Body() reportDTO: ReportDTO) {
+        await this.reportService.create(reportDTO);
+    }
+    
+
+    // @Put()
+    // async create(@Body() reportDTO: ReportDTO) {
+    //     await this.reportService.create(reportDTO);
+    // }
 }

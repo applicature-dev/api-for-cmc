@@ -1,11 +1,10 @@
-import * as mongoose from "mongoose";
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { Report } from './Report.schema';
+import { Report } from './report.schema';
 
 export type OverviewDocument = Overview & Document;
 
-@Schema()
+@Schema({_id: false})
 export class Overview {
   @Prop({ required: true })
   name: string;
@@ -14,10 +13,7 @@ export class Overview {
   score: number;
 
   @Prop({ required: true })
-  message: string;
-
-  @Prop({required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Report' })
-  report: Report;
+  msg: string;
 }
 
 export const OverviewSchema = SchemaFactory.createForClass(Overview);

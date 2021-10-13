@@ -13,5 +13,11 @@ export enum Severity {
     INFORMATIONAL,
     HIGH,
     LOW,
+    MEDIUM,
     CRITICAL
+}
+
+export enum Role {
+    ADMIN = 'Admin',
+    USER = 'User'
 }
