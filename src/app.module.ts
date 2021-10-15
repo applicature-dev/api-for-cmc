@@ -5,7 +5,6 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { ReportModule } from './report/report.module';
 import { ThrottlerModule } from "@nestjs/throttler";
 import { UserModule } from './user/user.module';
-// import { JwtService } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './roles/role.guard';
 import { AuthModule } from './auth/auth.module';
@@ -13,9 +12,12 @@ import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+      isGlobal: true
+    }),
     MongooseModule.forRoot(
-      'mongodb://localhost/cmc-audit-report',
+      process.env.MONGODB_URL,
       { 
         useNewUrlParser: true,
         useUnifiedTopology: true,
@@ -31,10 +33,6 @@ import { ConfigModule } from '@nestjs/config';
   ],
   controllers: [AppController],
   providers: [
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: RolesGuard,
-    // },
     AppService, 
     UserModule, 
   ],
