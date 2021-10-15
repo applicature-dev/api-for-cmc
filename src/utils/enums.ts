@@ -18,6 +18,7 @@ export enum Severity {
 }
 
 export enum Role {
-    ADMIN = 'Admin',
-    USER = 'User'
+    ADMIN,
+    AUDITOR,
+    USER
 }

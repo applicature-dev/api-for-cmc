@@ -4,7 +4,6 @@ import { Model } from 'mongoose';
 import { ReportDTO } from 'src/dto/report.dto';
 import { Report } from 'src/schemas/report.schema';
 
-
 @Injectable()
 export class ReportService {
     constructor(

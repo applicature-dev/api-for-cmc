@@ -12,22 +12,22 @@ export type ReportDocument = Report & Document;
 
 @Schema({versionKey: false})
 export class Report {
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   coinId: number;
 
   @Prop({ required: true })
   auditor: string;
 
   @Prop({ required: true, enum: AuditStatus })
-  auditStatus: number; // enum
+  auditStatus: number;
 
-  @Prop()
+  @Prop({ unique: true})
   coinName: string;
 
   @Prop()
   score: number;
 
-  @Prop()
+  @Prop({ unique: true})
   contractAddress: string;
 
   @Prop()
@@ -45,8 +45,7 @@ export class Report {
   @Prop({ type: [OverviewSchema], default: [] })
   overview: OverviewInterface[];
 
-  // @Prop({ type: [CommunityAlert], default: [] })
-  @Prop({ type: [{ type: CommunityAlertSchema }] })
+  @Prop({ type: [{ type: CommunityAlertSchema, default: [] }] })
   communityAlerts: CommunityAlertInterface[];
 }
 
