@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type OverviewDocument = Overview & Document;
 
-@Schema({_id: false})
+@Schema({_id: false, versionKey: false})
 export class Overview {
   @Prop({ required: true })
   name: string;

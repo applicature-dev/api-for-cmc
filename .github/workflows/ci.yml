@@ -1,0 +1,89 @@
+name: CI
+on:
+  pull_request:
+    branches: [develop, master]
+  push:
+    branches: [develop, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SERVER_USERNAME: ${{secrets.AWS_ACCESS_KEY_ID}}
+      SERVER_PASS: ${{secrets.AWS_ACCESS_KEY_ID}}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node_modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{runner.os}}-node-${{hashFiles('**/package-lock.json')}}
+          restore-key: |
+            ${{runner.os}}-node-
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14.x"
+      - run: npm ci
+      - run: npm run format
+      - run: npm run test:cov 
+        env: 
+          CI: true
+      - name: Upload code coverage as an artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: code-coverage
+          path: coverage
+      - name: Build Project
+        if: github.event_name == "push"
+        run: npm run build
+      - name: Upload build as an artifact
+        if: github.event_name == "push"
+        uses: actions/upload-artifact@v1
+        with:
+          name: build
+          path: build
+      - name: Zip Assets
+        if: github.event_name == "push" && github.ref == "refs/head/master"
+        run: |
+          zip -r build.zip ./build
+          zip -r coverage.zip ./coverage
+      - name: Create A Release
+        if: github.event_name == "push" && github.ref == "refs/head/master"
+        run: npx run semantic-release
+        env:
+          GITHUB_TOKEN: ${{secrets.CUSTOM_TOKEN}} # Generate a custom user token
+      - name: Deploy To Staging 
+        if: github.event_name == "push" && github.ref == "refs/head/develop"
+        run: npx surge #deploy to our staging server
+      - name: Deploy To Production 
+        if: github.event_name == "push" && github.ref == "refs/head/master"
+        run: npx surge #deploy to our staging server
+      - name: Upload To Codecov 
+        if: github.event_name == "push" && github.ref == "refs/head/master"
+        run: npx run codecov #add codecov secret to github
+        env:
+          CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
+      - name: Open Issue 
+        if: failure() && github.event_name == "pull_request"
+        run: |
+          curl --request POST \
+          --url https:api.github.com/repos/${{github.repository}}/issues \
+          --header 'authorization: Bearer ${{secrets.GITHUB_TOKEN}}' \
+          --header 'content-type: application/json' \
+          --data '{
+            "title": "Automated issue for commit: ${{github.sha}}",
+            "body": "This issue was automatically created by 
+            the Github Action Workflow **${{github.workflow}}**.
+            \n\n The commit hash was: _${{github.sha}}_.",
+            "assignees": ["${{github.event.pull_request.user.login}}"]
+            }'
+            
+        
+
+
+
+
+
+          
+          

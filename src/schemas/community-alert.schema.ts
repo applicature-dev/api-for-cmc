@@ -4,7 +4,7 @@ import { AlertStatus } from "../utils/enums";
 
 export type CommunityAlertDocument = CommunityAlert & Document;
 
-@Schema({_id: false})
+@Schema({_id: false, versionKey: false})
 export class CommunityAlert {
   @Prop({ required: true })
   description: string;

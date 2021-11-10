@@ -1,0 +1,76 @@
+name: ECS deploy
+on:
+  workflow_dispatch:
+env:
+  AWS_REGION: us-east-2
+  PROJECT_NAME: Coin Market Cap Audit API
+  ECR_REPOSITORY: api-for-cmc
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 14.x ]
+        mongodb-version: [ 4.2.12 ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - name: Start MongoDB v${{ matrix.mongodb-version }}
+        uses: supercharge/mongodb-github-action@1.2.0
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+      - run: npm run test
+  deploy:
+    needs: [ci]
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Extract environment
+        shell: bash
+        run: echo "##[set-output name=stage;]$(echo ${{ github.ref =='refs/heads/master' && 'production' || 'development' }})"
+        id: extract_environment
+      - name: Configure AWS credentials 
+        uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@aaf69d68aa3fb14c1d5a6be9ac61fe15b48453a2
+      - name: Update Docker
+        run: |
+          curl -L https://raw.githubusercontent.com/docker/compose-cli/main/scripts/install/install_linux.sh | sh
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f ./path/to/your/Dockerfile .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+      - name: Deploy Amazon ECS docker compose
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+          STAGE: ${{ steps.extract_environment.outputs.stage }}
+          ENV_SECRET_ARN_development: ${{ secrets.ENV_SECRET_ARN_DEVELOPMENT }}
+          ENV_SECRET_ARN_production: ${{ secrets.ENV_SECRET_ARN_PRODUCTION }}
+        run: |
+          export ENV_SECRET_ARN_VAR=ENV_SECRET_ARN_${STAGE}
+          export ENV_SECRET_ARN=${!ENV_SECRET_ARN_VAR}
+          unset DOCKER_HOST 
+          docker context create ecs deploy --from-env
+          docker context use deploy
+          docker compose --file path/to/docker-compose.yml --project-name ${PROJECT_NAME}-${STAGE} up
+          docker compose --file path/to/docker-compose.yml --project-name ${PROJECT_NAME}-${STAGE} ps

@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: app
+    image: "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" 
+    environment:
+      - "ENV_FILE_PATH=/run/secrets/env"
+    secrets:
+      - "env"
+    command: npm run start
+    ports:
+      - 3000:3000
+      - target: 9229
+        published: 443
+        x-aws-protocol: http
+    volumes:
+      - mydata:/some/container/path
+    deploy:
+      resources:
+        limits:
+        cpus: '0.5'
+        memory: 2048M
+      x-aws-autoscaling:
+        cpu: 75
+    x-aws-role:
+      Version: '2012-10-17'
+      Statement:
+      - Effect: Allow
+        Action: sqs:*
+        Resource: arn:aws:sqs:us-east-1:12345678:myqueue
+  secrets:
+    env:
+    name: ${ENV_SECRET_ARN}
+    external: true
+  volumes:
+    mydata:
+  x-aws-cloudformation:
+    Resources:
+      WebappTCP80Listener:
+        Properties:
+          Certificates:
+            - CertificateArn: "arn:aws:acm:certificate/123abc"
+          Protocol: HTTPS
+          Port: 443  
+  
+
+
+  
