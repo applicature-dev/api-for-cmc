@@ -8,9 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      SERVER_USERNAME: ${{secrets.AWS_ACCESS_KEY_ID}}
-      SERVER_PASS: ${{secrets.AWS_ACCESS_KEY_ID}}
     steps:
       - uses: actions/checkout@v2
       - name: Cache node_modules
@@ -26,6 +23,7 @@ jobs:
           node-version: "14.x"
       - run: npm ci
       - run: npm run format
+      - run: npm run test
       - run: npm run test:cov 
         env: 
           CI: true
@@ -52,14 +50,14 @@ jobs:
         if: ${{github.event_name == 'push' && github.ref == 'refs/head/main'}}
         run: npx run semantic-release
         env:
-          GITHUB_TOKEN: ${{secrets.CUSTOM_TOKEN}} # Generate a custom user token
+          GITHUB_TOKEN: ${{secrets.CUSTOM_TOKEN}} # TODO: Generate a custom user token
       - name: Upload To Codecov 
         if: ${{github.event_name == 'push' && github.ref == 'refs/head/main'}}
-        run: npx run codecov #add codecov secret to github
+        run: npx run codecov
         env:
           CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
       - name: Open Issue 
-        if: failure() && github.event_name == 'pull_request'
+        if: ${{failure() && github.event_name == 'pull_request'}}
         run: |
           curl --request POST \
           --url https:api.github.com/repos/${{github.repository}}/issues \
@@ -71,8 +69,7 @@ jobs:
             the Github Action Workflow **${{github.workflow}}**.
             \n\n The commit hash was: _${{github.sha}}_.",
             "assignees": ["${{github.event.pull_request.user.login}}"]
-            }'
-            
+            }'          
         
 
 
