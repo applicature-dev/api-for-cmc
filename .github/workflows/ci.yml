@@ -53,12 +53,6 @@ jobs:
         run: npx run semantic-release
         env:
           GITHUB_TOKEN: ${{secrets.CUSTOM_TOKEN}} # Generate a custom user token
-      - name: Deploy To Staging 
-        if: ${{github.event_name == 'push' && github.ref == 'refs/head/develop'}}
-        run: npx surge #deploy to our staging server
-      - name: Deploy To Production 
-        if: ${{github.event_name == 'push' && github.ref == 'refs/head/main'}}
-        run: npx surge #deploy to our staging server
       - name: Upload To Codecov 
         if: ${{github.event_name == 'push' && github.ref == 'refs/head/main'}}
         run: npx run codecov #add codecov secret to github
