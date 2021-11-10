@@ -35,37 +35,37 @@ jobs:
           name: code-coverage
           path: coverage
       - name: Build Project
-        if: github.event_name == 'push'
+        if: ${{github.event_name == 'push'}}
         run: npm run build
       - name: Upload build as an artifact
-        if: github.event_name == 'push'
+        if: ${{github.event_name == 'push'}}
         uses: actions/upload-artifact@v1
         with:
           name: build
           path: build
       - name: Zip Assets
-        if: github.event_name == 'push' && github.ref == "refs/head/master"
+        if: ${{github.event_name == 'push' && github.ref == 'refs/head/master'}}
         run: |
           zip -r build.zip ./build
           zip -r coverage.zip ./coverage
       - name: Create A Release
-        if: github.event_name == 'push' && github.ref == "refs/head/master"
+        if: ${{github.event_name == 'push' && github.ref == 'refs/head/master'}}
         run: npx run semantic-release
         env:
           GITHUB_TOKEN: ${{secrets.CUSTOM_TOKEN}} # Generate a custom user token
       - name: Deploy To Staging 
-        if: github.event_name == 'push' && github.ref == "refs/head/develop"
+        if: ${{github.event_name == 'push' && github.ref == 'refs/head/develop'}}
         run: npx surge #deploy to our staging server
       - name: Deploy To Production 
-        if: github.event_name == 'push' && github.ref == "refs/head/master"
+        if: ${{github.event_name == 'push' && github.ref == 'refs/head/master'}}
         run: npx surge #deploy to our staging server
       - name: Upload To Codecov 
-        if: github.event_name == 'push' && github.ref == "refs/head/master"
+        if: ${{github.event_name == 'push' && github.ref == 'refs/head/master'}}
         run: npx run codecov #add codecov secret to github
         env:
           CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
       - name: Open Issue 
-        if: failure() && github.event_name == "pull_request"
+        if: failure() && github.event_name == 'pull_request'
         run: |
           curl --request POST \
           --url https:api.github.com/repos/${{github.repository}}/issues \
