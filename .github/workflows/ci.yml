@@ -27,7 +27,7 @@ jobs:
       - run: npm run test:cov 
         env: 
           CI: true
-      - name: Upload code coverage as an artifact
+      - name: Upload Code Coverage As Artifact
         uses: actions/upload-artifact@v1
         with:
           name: code-coverage
@@ -35,12 +35,12 @@ jobs:
       - name: Build Project
         if: ${{github.event_name == 'push'}}
         run: npm run build
-      - name: Upload build as an artifact
+      - name: Upload Build Artifact
         if: ${{github.event_name == 'push'}}
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: build
-          path: "./build"
+          path: "dist"
       - name: Zip Assets
         if: ${{github.event_name == 'push' && github.ref == 'refs/head/main'}}
         run: |
