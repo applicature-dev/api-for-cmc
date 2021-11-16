@@ -21,6 +21,9 @@ export class Report {
   @Prop({ required: true, enum: AuditStatus })
   auditStatus: number;
 
+  @Prop({unique: true})
+  symbol: string;
+
   @Prop({ unique: true})
   coinName: string;
 

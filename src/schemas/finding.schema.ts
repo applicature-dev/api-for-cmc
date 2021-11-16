@@ -4,7 +4,7 @@ import { Severity } from "../utils/enums";
 
 export type FindingDocument = Finding & Document;
 
-@Schema({_id: false})
+@Schema({_id: false, versionKey: false})
 export class Finding {
   @Prop({ required: true })
   title: string;
